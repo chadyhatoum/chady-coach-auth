@@ -5,13 +5,14 @@
 <p style="font-family:sans-serif;padding:20px">Signing you in...</p>
 <script>
 const hash = window.location.hash.substring(1);
-const params = new URLSearchParams(hash);
-const token = params.get('access_token');
+const search = window.location.search.substring(1);
+const params = new URLSearchParams(hash || search);
+const token = params.get('access_token') || new URLSearchParams(search).get('token');
 if (token) {
   history.replaceState(null, '', '?token=' + encodeURIComponent(token));
   document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px;color:green">✓ Signed in. This window will close shortly.</p>';
 } else {
-  document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px;color:#999">Ready for authentication.</p>';
+  document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px;color:#999">Ready for authentication.<br><small>hash: ' + (hash||'none') + '<br>search: ' + (search||'none') + '</small></p>';
 }
 </script>
 </body>

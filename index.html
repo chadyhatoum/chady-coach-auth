@@ -2,15 +2,22 @@
 <html>
 <head><title>Chady Coach Auth</title></head>
 <body>
+<p style="font-family:sans-serif;padding:20px">Signing you in...</p>
 <script>
 const hash = window.location.hash.substring(1);
 const params = new URLSearchParams(hash);
 const token = params.get('access_token');
-if (token && window.opener) {
-  window.opener.postMessage({type:'gdrive_token',token}, 'https://claude.ai');
-  window.close();
+if (token) {
+  if (window.opener) {
+    window.opener.postMessage({type:'gdrive_token', token: token}, 'https://claude.ai');
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px">✓ Signed in. You can close this window.</p>';
+    setTimeout(() => window.close(), 2000);
+  } else {
+    sessionStorage.setItem('gdrive_token', token);
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px">✓ Auth complete. Please close this window and return to the app.</p>';
+  }
 } else {
-  document.body.innerHTML = '<p>Auth complete. You can close this window.</p>';
+  document.body.innerHTML = '<p style="font-family:sans-serif;padding:20px;color:red">No token received. Please try again.</p>';
 }
 </script>
 </body>

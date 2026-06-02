@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Chady Coach Auth</title></head>
+<body>
+<script>
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const token = params.get('access_token');
+if (token && window.opener) {
+  window.opener.postMessage({type:'gdrive_token',token}, 'https://claude.ai');
+  window.close();
+} else {
+  document.body.innerHTML = '<p>Auth complete. You can close this window.</p>';
+}
+</script>
+</body>
+</html>

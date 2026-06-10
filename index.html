@@ -1,20 +1,65 @@
 <!DOCTYPE html>
-<html>
-<head><title>Chady Coach Auth</title></head>
-<body style="font-family:sans-serif;padding:20px;max-width:500px;margin:0 auto">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chady Coach Auth</title>
+<style>
+  body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f7f9fc;color:#1a1a1a}
+  .box{text-align:center;padding:40px;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.08);max-width:360px}
+  .icon{font-size:48px;margin-bottom:16px}
+  h2{margin:0 0 8px;font-size:20px;color:#0C447C}
+  p{margin:0;font-size:14px;color:#666;line-height:1.5}
+  .err{color:#D85A30}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <div class="icon">⏳</div>
+  <h2>Signing in...</h2>
+  <p>Completing Google Drive authorization.</p>
+</div>
 <script>
-const hash = window.location.hash.substring(1);
-const params = new URLSearchParams(hash);
-const token = params.get('access_token');
-if (token) {
-  document.body.innerHTML =
-    '<h3 style="color:green">✓ Signed in</h3>' +
-    '<p>Click Copy, then paste into the app:</p>' +
-    '<textarea id="t" style="width:100%;height:60px;font-size:10px;font-family:monospace">' + token + '</textarea><br>' +
-    '<button onclick="navigator.clipboard.writeText(document.getElementById(\'t\').value);this.textContent=\'✓ Copied!\';this.style.background=\'green\'" style="margin-top:8px;padding:8px 16px;background:#0C447C;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">Copy Token</button>';
-} else {
-  document.body.innerHTML = '<p style="color:#999">Ready for authentication.</p>';
-}
+(function(){
+  var TARGET_ORIGIN = 'https://leadsapi.chadmtg.com';
+  var hash = window.location.hash;
+  var box = document.getElementById('box');
+
+  function show(ok, msg){
+    box.innerHTML = '<div class="icon">'+(ok?'✅':'❌')+'</div><h2'+(ok?'':' class="err"')+'>'+(ok?'Signed in':'Auth failed')+'</h2><p>'+msg+'</p>';
+  }
+
+  if(!hash || !hash.includes('access_token')){
+    show(false,'No token found. Please try signing in again.');
+    return;
+  }
+
+  var params = new URLSearchParams(hash.slice(1));
+  var token = params.get('access_token');
+  var expiresIn = parseInt(params.get('expires_in') || '3600', 10);
+
+  if(!token){
+    show(false,'Token missing. Please try again.');
+    return;
+  }
+
+  // Send token back to opener
+  if(window.opener){
+    try{
+      window.opener.postMessage({
+        type: 'chady-drive-token',
+        access_token: token,
+        expires_in: expiresIn
+      }, TARGET_ORIGIN);
+      show(true,'You can close this window.');
+      setTimeout(function(){ window.close(); }, 1500);
+    }catch(e){
+      show(false,'Could not send token back to app: '+e.message);
+    }
+  }else{
+    show(false,'Popup lost connection to app. Close this window and try again.');
+  }
+})();
 </script>
 </body>
 </html>
